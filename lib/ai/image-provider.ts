@@ -197,7 +197,8 @@ export const geminiImageProvider: ImageProvider = {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { responseModalities: ['IMAGE'] },
+          // Gemini 2.5 Flash Image 는 TEXT+IMAGE 두 modality 를 모두 허용해야 안정적.
+          generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
         }),
       },
     );
@@ -207,26 +208,41 @@ export const geminiImageProvider: ImageProvider = {
       throw new Error(`Gemini Image API 호출 실패: ${res.status} ${errText}`);
     }
 
+    // 응답에 camelCase(inlineData) / snake_case(inline_data) 두 형태가 모두 등장할 수 있어
+    // 양쪽을 모두 시도한다. promptFeedback/finishReason 도 진단용으로 추출.
     const data = (await res.json()) as {
       candidates?: Array<{
         content?: {
           parts?: Array<{
             inlineData?: { mimeType?: string; data?: string };
+            inline_data?: { mime_type?: string; data?: string };
           }>;
         };
+        finishReason?: string;
       }>;
+      promptFeedback?: { blockReason?: string };
     };
 
-    const inline = data.candidates?.[0]?.content?.parts?.find(
-      (p) => p.inlineData?.data,
-    )?.inlineData;
-    if (!inline?.data) {
-      throw new Error('Gemini Image 응답에 inlineData 가 없습니다.');
-    }
+    const parts = data.candidates?.[0]?.content?.parts ?? [];
+    const inlinePart = parts.find(
+      (p) => p.inlineData?.data || p.inline_data?.data,
+    );
+    const mime =
+      inlinePart?.inlineData?.mimeType ??
+      inlinePart?.inline_data?.mime_type ??
+      'image/png';
+    const b64 = inlinePart?.inlineData?.data ?? inlinePart?.inline_data?.data;
 
+    if (!b64) {
+      const finishReason = data.candidates?.[0]?.finishReason ?? 'unknown';
+      const blockReason = data.promptFeedback?.blockReason ?? 'none';
+      const preview = JSON.stringify(data).slice(0, 500);
+      throw new Error(
+        `Gemini Image 응답에 이미지가 없음. finishReason=${finishReason} blockReason=${blockReason} preview=${preview}`,
+      );
+    }
     // data URL 로 감싸서 persistAsset 에 위임 (Node fetch는 data: 스킴 지원)
-    const mime = inline.mimeType ?? 'image/png';
-    const external_url = `data:${mime};base64,${inline.data}`;
+    const external_url = `data:${mime};base64,${b64}`;
 
     return {
       external_url,
