@@ -1,0 +1,48 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# env files
+.env
+.env.*
+!.env*.example
+.env*.local
+.env.keys
+
+# Supabase
+supabase/.temp
+supabase/.branches
+
+# misc
+.DS_Store
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+credentials*.json
+secrets*.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code / OMC (local agent state, may contain secrets)
+.omc/
+.claude/
+CLAUDE.local.md
+AGENTS.local.md

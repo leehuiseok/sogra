@@ -1,0 +1,30 @@
+{
+  "name": "sogra",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "@supabase/supabase-js": "^2",
+    "@supabase/ssr": "latest",
+    "inngest": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "tailwindcss": "^3.4",
+    "postcss": "latest",
+    "autoprefixer": "latest"
+  }
+}
