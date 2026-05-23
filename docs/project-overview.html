@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sogra v1 프로젝트 설명서</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f3ed;
+        --paper: #fffdf8;
+        --ink: #22201d;
+        --muted: #6d655b;
+        --line: #e6ded3;
+        --accent: #e95f2a;
+        --accent-dark: #a43d1d;
+        --green: #247a57;
+        --blue: #315f8d;
+        --yellow: #9a6b13;
+        --code: #28231e;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
+          "Noto Sans KR", sans-serif;
+        line-height: 1.65;
+      }
+
+      a {
+        color: var(--accent-dark);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+        gap: 28px;
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 32px 24px 56px;
+      }
+
+      aside {
+        position: sticky;
+        top: 24px;
+        height: calc(100vh - 48px);
+        align-self: start;
+        border: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.82);
+        border-radius: 8px;
+        padding: 18px;
+        overflow: auto;
+      }
+
+      aside strong {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+
+      nav a {
+        display: block;
+        padding: 6px 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .hero {
+        border: 1px solid var(--line);
+        background: var(--paper);
+        border-radius: 8px;
+        padding: 34px;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--accent-dark);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(32px, 5vw, 58px);
+      }
+
+      h2 {
+        margin: 42px 0 14px;
+        font-size: 26px;
+      }
+
+      h3 {
+        margin: 24px 0 10px;
+        font-size: 18px;
+      }
+
+      p {
+        margin: 0 0 14px;
+      }
+
+      .lead {
+        margin-top: 16px;
+        max-width: 850px;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 22px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff7ee;
+        color: #6c351f;
+        padding: 3px 10px;
+        font-size: 13px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      section {
+        border: 1px solid var(--line);
+        background: var(--paper);
+        border-radius: 8px;
+        margin-top: 18px;
+        padding: 26px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fffaf2;
+        padding: 16px;
+      }
+
+      .card h3 {
+        margin-top: 0;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .status {
+        display: inline-block;
+        border-radius: 6px;
+        padding: 2px 8px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .done {
+        background: #e8f5ef;
+        color: var(--green);
+      }
+
+      .partial {
+        background: #fff3d8;
+        color: var(--yellow);
+      }
+
+      .api {
+        background: #eaf2fb;
+        color: var(--blue);
+      }
+
+      .flow {
+        display: grid;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .flow-step {
+        display: grid;
+        grid-template-columns: 40px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fffaf2;
+      }
+
+      .num {
+        display: inline-grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        overflow-wrap: anywhere;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 10px 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: #4c433b;
+        font-size: 13px;
+        background: #fbf4ea;
+      }
+
+      code,
+      pre {
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", monospace;
+      }
+
+      code {
+        border: 1px solid #e3d7c7;
+        border-radius: 5px;
+        background: #fff5e6;
+        padding: 1px 5px;
+        color: #4a2b1d;
+        font-size: 0.92em;
+      }
+
+      pre {
+        overflow-x: auto;
+        border-radius: 8px;
+        background: var(--code);
+        color: #f6efe4;
+        padding: 16px;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      pre code {
+        border: 0;
+        background: transparent;
+        color: inherit;
+        padding: 0;
+      }
+
+      ul {
+        margin: 10px 0 0;
+        padding-left: 20px;
+      }
+
+      li {
+        margin: 5px 0;
+      }
+
+      .callout {
+        border-left: 4px solid var(--accent);
+        background: #fff6e8;
+        padding: 12px 14px;
+        border-radius: 6px;
+        color: #52392b;
+      }
+
+      .footer {
+        margin-top: 22px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 900px) {
+        .shell {
+          grid-template-columns: 1fr;
+          padding: 18px;
+        }
+
+        aside {
+          position: static;
+          height: auto;
+        }
+
+        .hero,
+        section {
+          padding: 20px;
+        }
+
+        .grid,
+        .grid.three {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside>
+        <strong>Sogra v1 설명서</strong>
+        <nav aria-label="문서 목차">
+          <a href="#summary">요약</a>
+          <a href="#stack">기술 스택</a>
+          <a href="#flow">핵심 사용자 흐름</a>
+          <a href="#structure">폴더 구조</a>
+          <a href="#routes">화면과 API</a>
+          <a href="#data">데이터 모델</a>
+          <a href="#jobs">비동기 잡</a>
+          <a href="#integrations">외부 연동</a>
+          <a href="#setup">로컬 실행</a>
+          <a href="#status">현재 구현 상태</a>
+          <a href="#checklist">운영 체크포인트</a>
+        </nav>
+      </aside>
+
+      <main>
+        <header class="hero">
+          <p class="eyebrow">프로젝트 개요</p>
+          <h1>Sogra v1</h1>
+          <p class="lead">
+            음식점 사장님이 날씨, 요일, 시즌 같은 상황 신호를 바탕으로
+            포스터, 릴스, SNS 캡션을 생성하고 최종 산출물을 다운로드하거나 복사한 뒤
+            본인 SNS 계정에 직접 업로드하도록 설계된 AI 마케팅 자동화 SaaS입니다.
+          </p>
+          <div class="meta" aria-label="핵심 키워드">
+            <span class="tag">Next.js 14 App Router</span>
+            <span class="tag">Supabase Auth, DB, RLS, Storage</span>
+            <span class="tag">Inngest Background Jobs</span>
+            <span class="tag">AI Content Generation</span>
+            <span class="tag">Manual SNS Upload</span>
+            <span class="tag">Toss Payments</span>
+          </div>
+        </header>
+
+        <section id="summary">
+          <h2>요약</h2>
+          <div class="grid three">
+            <article class="card">
+              <h3>누구를 위한 서비스인가</h3>
+              <p>
+                카페, 일반 음식점, 배달 음식점 사장님을 대상으로 합니다. 마케팅 문구 작성,
+                이미지 제작, 릴스 제작, 게시 타이밍 판단을 한 화면에서 처리하는 것이 목표입니다.
+              </p>
+            </article>
+            <article class="card">
+              <h3>무엇을 자동화하는가</h3>
+              <p>
+                상황 추천, 자유 입력 NLU 분석, 콘텐츠 브리프 구성, 캡션과 포스터 생성,
+                릴스 비동기 생성, 최종 산출물 전달을 자동화합니다.
+              </p>
+            </article>
+            <article class="card">
+              <h3>핵심 제약</h3>
+              <p>
+                v1의 인스타그램 인증과 자동 게시 흐름은 제외되어 있습니다.
+                사용자는 포스터와 릴스를 다운로드하고 캡션을 복사해 직접 업로드합니다.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section id="stack">
+          <h2>기술 스택</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>영역</th>
+                <th>사용 기술</th>
+                <th>프로젝트 내 위치</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>프론트엔드와 API</td>
+                <td>Next.js 14 App Router, React 18, TypeScript</td>
+                <td><code>app/</code>, <code>components/</code></td>
+              </tr>
+              <tr>
+                <td>스타일</td>
+                <td>Tailwind CSS</td>
+                <td><code>app/globals.css</code>, <code>tailwind.config.ts</code></td>
+              </tr>
+              <tr>
+                <td>인증과 DB</td>
+                <td>Supabase Auth, PostgreSQL, RLS</td>
+                <td><code>lib/supabase/</code>, <code>supabase/migrations/</code></td>
+              </tr>
+              <tr>
+                <td>미디어 저장</td>
+                <td>Supabase Storage private bucket, signed URL</td>
+                <td><code>lib/storage/persist-asset.ts</code>, <code>0010_storage_buckets.sql</code></td>
+              </tr>
+              <tr>
+                <td>비동기 작업</td>
+                <td>Inngest</td>
+                <td><code>inngest/functions/</code>, <code>app/api/inngest/route.ts</code></td>
+              </tr>
+              <tr>
+                <td>AI 생성</td>
+                <td>Claude Haiku, GPT-4o-mini fallback, DALL·E 3, Runway Gen-3</td>
+                <td><code>lib/ai/</code>, <code>lib/prompts/</code></td>
+              </tr>
+              <tr>
+                <td>소셜 배포</td>
+                <td>수동 업로드용 산출물 다운로드와 캡션 복사</td>
+                <td><code>app/(app)/content/[id]/post</code></td>
+              </tr>
+              <tr>
+                <td>결제</td>
+                <td>Toss Payments 정기결제 구조</td>
+                <td><code>app/api/billing/</code>, <code>lib/toss/</code></td>
+              </tr>
+              <tr>
+                <td>테스트</td>
+                <td>Playwright E2E, Supabase SQL 테스트, TypeScript typecheck</td>
+                <td><code>tests/e2e/</code>, <code>supabase/tests/</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="flow">
+          <h2>핵심 사용자 흐름</h2>
+          <div class="flow" aria-label="주요 플로우">
+            <div class="flow-step">
+              <span class="num">1</span>
+              <div>
+                <strong>회원가입과 로그인</strong>
+                <p class="muted">
+                  Supabase Auth를 사용합니다. 인증된 사용자는 앱 레이아웃에서 온보딩 완료 여부를 검사합니다.
+                </p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <span class="num">2</span>
+              <div>
+                <strong>온보딩 1~4단계</strong>
+                <p class="muted">
+                  업종 선택, 국외이전 동의, 매장명과 주소, 대표 메뉴,
+                  브랜드 톤 키워드를 <code>store_profiles</code>에 저장합니다.
+                </p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <span class="num">3</span>
+              <div>
+                <strong>상황 추천 또는 자유 입력</strong>
+                <p class="muted">
+                  추천은 날씨와 달력 신호를 점수화합니다. 자유 입력은 Claude 기반 NLU로
+                  event, action, when, target을 추출하고 신뢰도에 따라 확인 UI를 띄웁니다.
+                </p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <span class="num">4</span>
+              <div>
+                <strong>상황 트리거 저장</strong>
+                <p class="muted">
+                  추천 또는 자유 입력 결과는 <code>situation_triggers</code>에 저장됩니다.
+                  NLU 이력은 <code>nlu_parse_events</code>에 남겨 추후 보정과 드리프트 분석에 사용합니다.
+                </p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <span class="num">5</span>
+              <div>
+                <strong>콘텐츠 생성</strong>
+                <p class="muted">
+                  <code>/api/content/generate</code>가 캡션, 포스터, 릴스 브리프를 만들고 월간 할당량을
+                  차감합니다. 캡션은 텍스트 모델, 포스터는 이미지 모델, 릴스는 Inngest 잡으로 처리합니다.
+                </p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <span class="num">6</span>
+              <div>
+                <strong>미리보기, 승인, 산출물 전달</strong>
+                <p class="muted">
+                  생성된 콘텐츠는 <code>marketing_contents</code>에서 상태를 관리합니다.
+                  승인된 포스터와 릴스는 다운로드하고, 캡션은 복사해 사용자가 직접 업로드합니다.
+                </p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <span class="num">7</span>
+              <div>
+                <strong>운영 관리</strong>
+                <p class="muted">
+                  할당량, 생성 실패 환불, signed URL 갱신, 결제 상태, 외부 API 비용을 추적합니다.
+                  Instagram 게시와 성과 측정은 v1 필수 흐름에서 제외되었습니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="structure">
+          <h2>폴더 구조</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>경로</th>
+                <th>역할</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>app/</code></td>
+                <td>Next.js 화면 라우트와 API 라우트입니다. 인증 영역, 앱 영역, 온보딩, 대시보드, 콘텐츠, 결제를 포함합니다.</td>
+              </tr>
+              <tr>
+                <td><code>components/</code></td>
+                <td>온보딩 폼, 트리거 확인 카드, 콘텐츠 카드, 결제 배너처럼 재사용되는 UI 컴포넌트입니다.</td>
+              </tr>
+              <tr>
+                <td><code>lib/</code></td>
+                <td>Supabase 클라이언트, AI provider, 트리거 추천, 신호 수집, 저장소, 관측성, 결제 유틸리티입니다.</td>
+              </tr>
+              <tr>
+                <td><code>inngest/</code></td>
+                <td>영상 생성, 자산 URL 갱신, dead-letter 환불, 빌링 dunning 같은 백그라운드 함수입니다.</td>
+              </tr>
+              <tr>
+                <td><code>supabase/</code></td>
+                <td>DB 마이그레이션, RLS 정책, 로컬 Supabase 설정, SQL 테스트입니다.</td>
+              </tr>
+              <tr>
+                <td><code>tests/e2e/</code></td>
+                <td>온보딩과 콘텐츠, 수동 산출물 전달, 결제와 dunning 흐름의 Playwright 테스트입니다.</td>
+              </tr>
+              <tr>
+                <td><code>reports/</code></td>
+                <td>V1 KPI와 사용자당 비용 분석 SQL입니다.</td>
+              </tr>
+              <tr>
+                <td><code>data/</code>, <code>scripts/</code></td>
+                <td>NLU 보정용 golden set과 calibration 스크립트입니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="routes">
+          <h2>화면과 API</h2>
+          <h3>주요 화면</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>라우트</th>
+                <th>설명</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/</code></td>
+                <td>부트스트랩 확인용 홈 화면입니다.</td>
+                <td><span class="status done">구현</span></td>
+              </tr>
+              <tr>
+                <td><code>/login</code>, <code>/signup</code></td>
+                <td>Supabase Auth 기반 인증 화면입니다.</td>
+                <td><span class="status done">구현</span></td>
+              </tr>
+              <tr>
+                <td><code>/onboarding/[step]</code></td>
+                <td>4단계 온보딩입니다. 매장 정보, 메뉴, 톤을 수집합니다.</td>
+                <td><span class="status done">구현</span></td>
+              </tr>
+              <tr>
+                <td><code>/dashboard</code></td>
+                <td>상황 추천과 자유 입력 분석 화면입니다. 콘텐츠 생성 버튼은 UI상 비활성 상태입니다.</td>
+                <td><span class="status partial">부분 구현</span></td>
+              </tr>
+              <tr>
+                <td><code>/content/[id]</code></td>
+                <td>트리거별 포스터, 릴스, 캡션 미리보기와 승인 흐름입니다.</td>
+                <td><span class="status done">구현</span></td>
+              </tr>
+              <tr>
+                <td><code>/content/[id]/post</code></td>
+                <td>승인된 콘텐츠의 이미지/영상 다운로드와 캡션 복사를 제공합니다.</td>
+                <td><span class="status done">구현</span></td>
+              </tr>
+              <tr>
+                <td><code>/billing</code></td>
+                <td>구독 상태와 요금제를 보여줍니다. 베타 안내 문구상 결제는 정식 출시 전 상태입니다.</td>
+                <td><span class="status partial">부분 구현</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>주요 API</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>API</th>
+                <th>역할</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/api/store-profile</code></td>
+                <td>온보딩 단계별 매장 프로필 생성과 갱신입니다.</td>
+              </tr>
+              <tr>
+                <td><code>/api/onboarding/event</code></td>
+                <td>온보딩 진입, 완료, 이탈 이벤트를 기록합니다.</td>
+              </tr>
+              <tr>
+                <td><code>/api/triggers/recommendations</code></td>
+                <td>날씨와 달력 기반 추천 트리거를 산출하고 저장합니다.</td>
+              </tr>
+              <tr>
+                <td><code>/api/triggers/freeform</code></td>
+                <td>자유 입력을 NLU로 파싱하고 확인, 수정, 거절 상태를 반영합니다.</td>
+              </tr>
+              <tr>
+                <td><code>/api/content/generate</code></td>
+                <td>캡션, 포스터, 릴스 생성을 시작합니다. 릴스는 Inngest 이벤트를 emit합니다.</td>
+              </tr>
+              <tr>
+                <td><code>/api/billing/checkout</code>, <code>/api/billing/webhook</code>, <code>/api/billing/cancel</code></td>
+                <td>Toss 결제 준비, 웹훅 검증, 구독 해지 흐름입니다.</td>
+              </tr>
+              <tr>
+                <td><code>/api/inngest</code></td>
+                <td>Inngest 함수 serve 엔드포인트입니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="data">
+          <h2>데이터 모델</h2>
+          <p class="callout">
+            Supabase RLS를 기본 보안 경계로 사용합니다. 사용자 데이터는 대부분
+            <code>owner_id</code> 또는 <code>store_id</code>를 통해 본인 매장만 조회하도록 정책이 잡혀 있습니다.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>테이블</th>
+                <th>핵심 역할</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>store_profiles</code></td>
+                <td>매장 기본 정보, 대표 메뉴, 브랜드 톤, 온보딩 상태를 보관합니다.</td>
+              </tr>
+              <tr>
+                <td><code>onboarding_funnel_events</code></td>
+                <td>온보딩 단계별 진입, 완료, 이탈 이벤트를 기록합니다.</td>
+              </tr>
+              <tr>
+                <td><code>quota_counters</code></td>
+                <td>KST 월 기준 포스터 30개, 릴스 5개 한도와 60일 부스트 크레딧을 관리합니다.</td>
+              </tr>
+              <tr>
+                <td><code>subscriptions</code>, <code>payment_events</code></td>
+                <td>구독 상태, Toss billing key, 웹훅 이벤트, dunning 상태를 관리합니다.</td>
+              </tr>
+              <tr>
+                <td><code>trigger_presets</code></td>
+                <td>비, 폭염, 평일 점심, 주말 저녁, 공휴일 같은 추천 프리셋 카탈로그입니다.</td>
+              </tr>
+              <tr>
+                <td><code>situation_triggers</code></td>
+                <td>추천 또는 자유 입력에서 만들어진 매장별 마케팅 상황 인스턴스입니다.</td>
+              </tr>
+              <tr>
+                <td><code>nlu_parse_events</code></td>
+                <td>자유 입력 파싱 결과, 신뢰도, 사용자 확인/수정/거절 내역을 저장합니다.</td>
+              </tr>
+              <tr>
+                <td><code>marketing_contents</code></td>
+                <td>트리거별 포스터, 릴스, 캡션 생성 결과와 상태, 비용, 승인 시각을 저장합니다.</td>
+              </tr>
+              <tr>
+                <td><code>media_generation_jobs</code></td>
+                <td>Inngest 영상 생성 잡의 멱등성 키, 재시도, dead-letter, Storage URL을 추적합니다.</td>
+              </tr>
+              <tr>
+                <td><code>instagram_posts</code></td>
+                <td>레거시 Instagram 게시 기록 테이블입니다. 현재 수동 업로드 UI에서는 사용하지 않습니다.</td>
+              </tr>
+              <tr>
+                <td><code>instagram_post_insights</code>, <code>insights_poll_attempts</code></td>
+                <td>레거시 Instagram 성과 지표 테이블입니다. 현재 수동 업로드 UI에서는 사용하지 않습니다.</td>
+              </tr>
+              <tr>
+                <td><code>baseline_insight_windows</code></td>
+                <td>레거시 IG 베이스라인 테이블입니다. 현재 수동 업로드 UI에서는 사용하지 않습니다.</td>
+              </tr>
+              <tr>
+                <td><code>observability_metrics</code>, <code>external_api_calls</code></td>
+                <td>내부 지표와 외부 API 호출 로그를 service role 전용으로 보관합니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="jobs">
+          <h2>비동기 잡</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>함수</th>
+                <th>트리거</th>
+                <th>역할</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>generateVideo</code></td>
+                <td><code>content/video.generate</code></td>
+                <td>Runway 영상 생성 시작, 폴링, Storage 복제, 콘텐츠 상태 업데이트, 실패 시 dead-letter 이벤트 발행입니다.</td>
+              </tr>
+              <tr>
+                <td><code>autoRefundDeadletter</code></td>
+                <td>영상 생성 실패 이벤트</td>
+                <td>dead-letter 전환된 생성 요청의 quota 환불 흐름입니다.</td>
+              </tr>
+              <tr>
+                <td><code>assetRehostRefresh</code></td>
+                <td>스케줄 또는 이벤트</td>
+                <td>만료되는 signed URL 또는 외부 자산 URL을 재호스팅/갱신합니다.</td>
+              </tr>
+              <tr>
+                <td><code>igMediaIdMatcher</code></td>
+                <td>등록 제외</td>
+                <td>레거시 Instagram 연동 잡입니다. 현재 <code>functions</code> 배열에 등록하지 않습니다.</td>
+              </tr>
+              <tr>
+                <td><code>insightsPoller</code></td>
+                <td>등록 제외</td>
+                <td>레거시 Instagram Insights 폴링 잡입니다. 현재 <code>functions</code> 배열에 등록하지 않습니다.</td>
+              </tr>
+              <tr>
+                <td><code>baselineCaptureTrigger</code></td>
+                <td>등록 제외</td>
+                <td>레거시 IG 성과 베이스라인 잡입니다. 현재 <code>functions</code> 배열에 등록하지 않습니다.</td>
+              </tr>
+              <tr>
+                <td><code>billingDunning</code>, <code>billingGraceSweep</code></td>
+                <td>결제 실패 또는 스케줄</td>
+                <td>결제 실패 알림, 유예기간, 정지 처리를 담당합니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="integrations">
+          <h2>외부 연동</h2>
+          <div class="grid">
+            <article class="card">
+              <h3>AI Providers</h3>
+              <ul>
+                <li>캡션: Claude Haiku 기본, GPT-4o-mini fallback 구조</li>
+                <li>포스터: DALL·E 3 이미지 생성 후 Supabase Storage로 복제</li>
+                <li>릴스: Runway Gen-3 비동기 생성, Pika fallback 인터페이스 보유</li>
+                <li><code>MOCK_AI_PROVIDERS=true</code>면 외부 API 없이 결정적 mock 결과 반환</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>SNS 수동 업로드</h3>
+              <ul>
+                <li>온보딩에서 Instagram OAuth를 요구하지 않습니다.</li>
+                <li>포스터와 릴스는 다운로드 가능한 최종 산출물로 제공합니다.</li>
+                <li>캡션은 복사 버튼으로 제공합니다.</li>
+                <li>사용자가 본인 Instagram 앱 또는 웹에서 직접 업로드합니다.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Toss Payments</h3>
+              <ul>
+                <li>월 49,000원 단일 플랜 구조가 DB에 정의되어 있습니다.</li>
+                <li>웹훅은 서명 검증과 customer key 매핑을 전제로 저장됩니다.</li>
+                <li><code>MOCK_TOSS=true</code>로 베타 환경을 지원합니다.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Signals</h3>
+              <ul>
+                <li>날씨: OpenWeather 기반 신호</li>
+                <li>달력: 요일과 공휴일 근접도</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="setup">
+          <h2>로컬 실행</h2>
+          <h3>필수 준비</h3>
+          <pre><code>cp .env.local.example .env.local
+pnpm install
+supabase start
+supabase db reset</code></pre>
+
+          <h3>개발 서버</h3>
+          <pre><code>pnpm dev</code></pre>
+          <p>기본 접속 주소는 <code>http://localhost:3000</code>입니다.</p>
+
+          <h3>Inngest 개발 서버</h3>
+          <pre><code>npx inngest-cli@latest dev</code></pre>
+
+          <h3>검증 명령</h3>
+          <pre><code>pnpm typecheck
+pnpm build
+pnpm e2e</code></pre>
+
+          <h3>주요 환경변수</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>변수</th>
+                <th>설명</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>NEXT_PUBLIC_SUPABASE_URL</code>, <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td>
+                <td>브라우저와 서버에서 사용하는 Supabase public 설정입니다.</td>
+              </tr>
+              <tr>
+                <td><code>SUPABASE_SERVICE_ROLE_KEY</code></td>
+                <td>서버 전용 admin 작업에 사용합니다. 클라이언트 번들에 노출되면 안 됩니다.</td>
+              </tr>
+              <tr>
+                <td><code>INNGEST_SIGNING_KEY</code>, <code>INNGEST_EVENT_KEY</code></td>
+                <td>Inngest webhook 검증과 이벤트 발행에 사용합니다.</td>
+              </tr>
+              <tr>
+                <td><code>ANTHROPIC_API_KEY</code>, <code>OPENAI_API_KEY</code>, <code>RUNWAY_API_KEY</code></td>
+                <td>텍스트, 이미지, 영상 AI provider에 사용합니다.</td>
+              </tr>
+              <tr>
+                <td><code>TOSS_CLIENT_KEY</code>, <code>TOSS_SECRET_KEY</code>, <code>TOSS_WEBHOOK_SECRET</code></td>
+                <td>Toss 결제 준비와 웹훅 검증에 사용합니다.</td>
+              </tr>
+              <tr>
+                <td><code>MOCK_AI_PROVIDERS</code>, <code>MOCK_TOSS</code></td>
+                <td>외부 API 키 없이 로컬/베타 흐름을 확인하기 위한 mock 토글입니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="status">
+          <h2>현재 구현 상태</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>영역</th>
+                <th>상태</th>
+                <th>메모</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>온보딩</td>
+                <td><span class="status done">구현</span></td>
+                <td>4단계 UI와 프로필 저장, 온보딩 이벤트 기록이 구현되어 있습니다.</td>
+              </tr>
+              <tr>
+                <td>추천과 자유 입력</td>
+                <td><span class="status done">구현</span></td>
+                <td>추천 API와 NLU 확인 흐름, 트리거 저장이 구현되어 있습니다.</td>
+              </tr>
+              <tr>
+                <td>대시보드에서 콘텐츠 생성 시작</td>
+                <td><span class="status partial">부분 구현</span></td>
+                <td><code>/api/content/generate</code>는 있으나 대시보드의 “콘텐츠 만들기” 버튼은 비활성화되어 있습니다.</td>
+              </tr>
+              <tr>
+                <td>캡션, 포스터, 릴스 생성</td>
+                <td><span class="status api">API 구현</span></td>
+                <td>할당량 차감, AI provider mock, Inngest 영상 잡, Storage 복제 흐름이 구현되어 있습니다.</td>
+              </tr>
+              <tr>
+                <td>최종 산출물 전달</td>
+                <td><span class="status done">구현</span></td>
+                <td>승인된 포스터와 릴스 다운로드, 캡션 복사 흐름으로 제공됩니다.</td>
+              </tr>
+              <tr>
+                <td>결제</td>
+                <td><span class="status partial">부분 구현</span></td>
+                <td>DB와 API, mock 토글은 있으나 화면은 베타 무료 이용 안내를 기본으로 노출합니다.</td>
+              </tr>
+              <tr>
+                <td>관측성과 리포트</td>
+                <td><span class="status done">구현</span></td>
+                <td>외부 API 호출 로그, 비용/KPI SQL, correlation id 구조가 있습니다.</td>
+              </tr>
+              <tr>
+                <td>테스트</td>
+                <td><span class="status partial">부분 구현</span></td>
+                <td>Playwright E2E와 SQL 테스트 파일이 있습니다. <code>test:unit</code>은 현재 TODO 스크립트입니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="checklist">
+          <h2>운영 체크포인트</h2>
+          <ul>
+            <li>Instagram OAuth와 자동 게시 재도입 전에는 App Review 권한, 토큰 저장, 실패 복구, 사용자 동의 UX를 별도 검증해야 합니다.</li>
+            <li>AI real 호출 전 <code>MOCK_AI_PROVIDERS=false</code>와 각 API 키, 비용 모니터링을 확인해야 합니다.</li>
+            <li>Supabase Storage는 private bucket이므로 signed URL 만료와 <code>assetRehostRefresh</code> 동작을 확인해야 합니다.</li>
+            <li>월간 quota는 DB RPC에서 차감되므로 실패 시 dead-letter 환불 흐름까지 E2E로 확인해야 합니다.</li>
+            <li>결제 정식 활성화 전 Toss 웹훅 서명 검증, customer key 매핑, dunning grace period를 실환경에서 재검증해야 합니다.</li>
+            <li>NLU 모델명, 가격 추정치, OpenAI/Anthropic/Runway API 사양은 출시 시점에 다시 확인하는 것이 좋습니다.</li>
+          </ul>
+
+          <p class="footer">
+            이 문서는 현재 저장소의 코드, 마이그레이션, README 기준으로 작성되었습니다.
+            주요 진입점은 <code>README.md</code>, <code>app/</code>, <code>lib/</code>,
+            <code>inngest/</code>, <code>supabase/migrations/</code>입니다.
+          </p>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

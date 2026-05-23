@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const bodySchema = z.object({
-  step: z.number().int().min(1).max(5),
+  step: z.number().int().min(1).max(4),
   eventType: z.enum(['enter', 'complete', 'skip', 'back', 'abandon']),
   durationMs: z.number().optional(),
 })

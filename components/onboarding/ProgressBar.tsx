@@ -3,7 +3,7 @@ export type ProgressBarProps = {
 }
 
 export default function ProgressBar({ currentStep }: ProgressBarProps) {
-  const totalSteps = 5
+  const totalSteps = 4
   const remaining = Math.round((totalSteps - currentStep) * 1.4)
 
   return (

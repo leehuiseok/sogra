@@ -1,7 +1,6 @@
 import { PRESETS, type TriggerPreset } from './presets'
 import { getWeatherSignal } from '@/lib/signals/weather'
 import { getCalendarSignal } from '@/lib/signals/calendar'
-import { getInstagramInsightsSignal } from '@/lib/signals/instagram-insights'
 
 export interface Recommendation {
   presetKey: string
@@ -23,14 +22,10 @@ function getSeoulHour(): number {
 
 export async function recommendTriggers(input: {
   city?: string
-  storeId: string
-  igAccessToken?: string
-  igUserId?: string
 }): Promise<Recommendation[]> {
   const [weather, calendar] = await Promise.all([
     getWeatherSignal(input.city ?? 'Seoul'),
     Promise.resolve(getCalendarSignal()),
-    getInstagramInsightsSignal(input.storeId, input.igAccessToken, input.igUserId),
   ])
 
   const hour = getSeoulHour()

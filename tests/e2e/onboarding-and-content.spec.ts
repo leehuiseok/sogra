@@ -51,9 +51,11 @@ async function mockSupabaseAuth(page: import('@playwright/test').Page) {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        id: 'test-user-id-123',
-        email: 'test@example.com',
-        role: 'authenticated',
+        user: {
+          id: 'test-user-id-123',
+          email: 'test@example.com',
+          role: 'authenticated',
+        },
       }),
     })
   })
@@ -132,12 +134,12 @@ test.describe('온보딩 플로우', () => {
     })
 
     await page.goto('/onboarding/2')
-    await page.getByPlaceholder(/상호명|매장 이름/).fill('테스트 카페')
-    await page.getByPlaceholder(/주소/).fill('서울시 강남구 테헤란로 1')
+    await page.getByLabel('매장 이름').fill('테스트 카페')
+    await page.getByLabel('매장 주소').fill('서울시 강남구 테헤란로 1')
     await expect(page.getByRole('button', { name: '다음' })).toBeEnabled()
   })
 
-  test('step 3 — 인스타그램 미연결 시 연결 버튼 표시', async ({ page }) => {
+  test('step 3 — 메뉴 입력 폼 렌더링 및 빈 상태 다음 버튼 비활성화', async ({ page }) => {
     await page.route('/api/store-profile', async (route) => {
       if (route.request().method() === 'GET') {
         await route.fulfill({
@@ -147,58 +149,33 @@ test.describe('온보딩 플로우', () => {
             category: 'cafe',
             store_name: '테스트 카페',
             address: '서울시 강남구',
-            ig_user_id: null,
-            ig_username: null,
-            onboarding_step: 3,
-          }),
-        })
-      } else {
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) })
-      }
-    })
-
-    await page.goto('/onboarding/3')
-    await expect(page.getByText('인스타그램 계정 연결')).toBeVisible()
-    await expect(page.getByRole('button', { name: /인스타그램 비즈니스 계정 연결/ })).toBeVisible()
-  })
-
-  test('step 3 — 인스타그램 연결 완료 시 다음 버튼 표시', async ({ page }) => {
-    await page.route('/api/store-profile', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            category: 'cafe',
-            store_name: '테스트 카페',
-            address: '서울시 강남구',
-            ig_user_id: 'ig-user-123',
-            ig_username: 'test_cafe_ig',
-            onboarding_step: 3,
-          }),
-        })
-      } else {
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) })
-      }
-    })
-
-    await page.goto('/onboarding/3')
-    await expect(page.getByText('@test_cafe_ig')).toBeVisible()
-    await expect(page.getByRole('button', { name: '다음' })).toBeVisible()
-  })
-
-  test('step 4 — 메뉴 입력 폼 렌더링 및 빈 상태 다음 버튼 비활성화', async ({ page }) => {
-    await page.route('/api/store-profile', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            category: 'cafe',
-            store_name: '테스트 카페',
-            address: '서울시 강남구',
-            ig_user_id: 'ig-user-123',
             menus: [],
+            onboarding_step: 3,
+          }),
+        })
+      } else {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) })
+      }
+    })
+
+    await page.goto('/onboarding/3')
+    await expect(page.getByText('대표 메뉴를 입력해 주세요')).toBeVisible()
+    await expect(page.getByRole('button', { name: '다음' })).toBeDisabled()
+    await expect(page.getByText('인스타그램 계정 연결')).not.toBeVisible()
+  })
+
+  test('step 4 — 톤 키워드 3개 선택 후 완료 버튼 활성화', async ({ page }) => {
+    await page.route('/api/store-profile', async (route) => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            category: 'cafe',
+            store_name: '테스트 카페',
+            address: '서울시 강남구',
+            menus: [{ name: '아메리카노', desc: '진한 에스프레소', price: 4500 }],
+            tone_keywords: [],
             onboarding_step: 4,
           }),
         })
@@ -208,32 +185,6 @@ test.describe('온보딩 플로우', () => {
     })
 
     await page.goto('/onboarding/4')
-    await expect(page.getByText('대표 메뉴를 입력해 주세요')).toBeVisible()
-    await expect(page.getByRole('button', { name: '다음' })).toBeDisabled()
-  })
-
-  test('step 5 — 톤 키워드 3개 선택 후 완료 버튼 활성화', async ({ page }) => {
-    await page.route('/api/store-profile', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            category: 'cafe',
-            store_name: '테스트 카페',
-            address: '서울시 강남구',
-            ig_user_id: 'ig-user-123',
-            menus: [{ name: '아메리카노', desc: '진한 에스프레소', price: 4500 }],
-            tone_keywords: [],
-            onboarding_step: 5,
-          }),
-        })
-      } else {
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) })
-      }
-    })
-
-    await page.goto('/onboarding/5')
     await expect(page.getByText('브랜드 톤을 선택해 주세요')).toBeVisible()
     // 완료 버튼은 키워드 3개 미선택 시 비활성화
     await expect(page.getByRole('button', { name: '완료' })).toBeDisabled()

@@ -1,6 +1,6 @@
 # Sogra v1
 
-음식점 사장님 대상 AI 마케팅 자동화 SaaS. 상황 버튼 하나로 포스터+릴스+SNS 글 3종 생성 → 인스타 자동/하이브리드 게시 → Meta Insights로 성과 측정.
+음식점 사장님 대상 AI 마케팅 자동화 SaaS. 상황 버튼 하나로 포스터+릴스+SNS 글 3종 생성 → 최종 산출물 다운로드/캡션 복사 → 사장님이 직접 SNS에 업로드하는 흐름입니다.
 
 ## 기술 스택
 
@@ -54,6 +54,4 @@ npx inngest-cli@latest dev
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (서버 전용) |
 | `INNGEST_SIGNING_KEY` | Inngest signing key |
-| `MOCK_INSTAGRAM_PUBLISH` | `true` = Mock 모드 (App Review 미통과 시 default) |
-
 자세한 내용은 `.env.local.example` 참조.

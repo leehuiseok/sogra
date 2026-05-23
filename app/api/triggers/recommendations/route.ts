@@ -17,7 +17,7 @@ export async function GET() {
 
   const { data: store, error: storeError } = await supabase
     .from('store_profiles')
-    .select('id, ig_access_token, ig_user_id')
+    .select('id')
     .eq('owner_id', user.id)
     .maybeSingle()
 
@@ -31,9 +31,6 @@ export async function GET() {
 
   const recommendations = await recommendTriggers({
     city: 'Seoul',
-    storeId: store.id,
-    igAccessToken: store.ig_access_token ?? undefined,
-    igUserId: store.ig_user_id ?? undefined,
   })
 
   const generatedAt = new Date().toISOString()

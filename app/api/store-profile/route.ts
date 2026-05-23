@@ -26,8 +26,8 @@ const step2Schema = z.object({
   events: z.array(eventSchema).optional(),
 })
 
-const step4Schema = z.object({
-  step: z.literal(4),
+const step3Schema = z.object({
+  step: z.literal(3),
   menus: z.array(
     z.object({
       name: z.string().min(1),
@@ -38,8 +38,8 @@ const step4Schema = z.object({
   events: z.array(eventSchema).optional(),
 })
 
-const step5Schema = z.object({
-  step: z.literal(5),
+const step4Schema = z.object({
+  step: z.literal(4),
   toneKeywords: z.array(z.string()).length(3),
   events: z.array(eventSchema).optional(),
 })
@@ -47,8 +47,8 @@ const step5Schema = z.object({
 const patchBodySchema = z.discriminatedUnion('step', [
   step1Schema,
   step2Schema,
+  step3Schema,
   step4Schema,
-  step5Schema,
 ])
 
 export async function GET() {
@@ -148,9 +148,9 @@ export async function PATCH(req: NextRequest) {
       updateData.store_name = body.storeName
       updateData.address = body.address
       updateData.address_detail = body.addressDetail ?? null
-    } else if (body.step === 4) {
+    } else if (body.step === 3) {
       updateData.menus = body.menus
-    } else if (body.step === 5) {
+    } else if (body.step === 4) {
       updateData.tone_keywords = body.toneKeywords
       updateData.onboarding_completed_at = now
     }

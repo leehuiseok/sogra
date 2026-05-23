@@ -2,7 +2,7 @@ const PLAN_FEATURES = [
   '포스터 30장/월',
   '릴스 5개/월 (60일 부스트 크레딧 3회 포함)',
   '캡션 무제한',
-  '자동 게시 (Real 모드 활성화 시)',
+  '최종 산출물 다운로드와 캡션 복사',
 ]
 
 export default function PlanCard() {

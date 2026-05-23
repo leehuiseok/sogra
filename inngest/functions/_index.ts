@@ -4,9 +4,6 @@
 import { generateVideo } from './generate-video'
 import { autoRefundDeadletter } from './auto-refund-deadletter'
 import { assetRehostRefresh } from './asset-rehost-refresh'
-import { baselineCaptureTrigger } from './baseline-capture-trigger'
-import { insightsPoller } from './insights-poller'
-import { igMediaIdMatcher } from './ig-media-id-matcher'
 import { billingDunning } from './billing-dunning'
 import { billingGraceSweep } from './billing-grace-sweep'
 
@@ -14,9 +11,6 @@ export {
   generateVideo,
   autoRefundDeadletter,
   assetRehostRefresh,
-  baselineCaptureTrigger,
-  insightsPoller,
-  igMediaIdMatcher,
   billingDunning,
   billingGraceSweep,
 }
@@ -25,9 +19,6 @@ export const functions = [
   generateVideo,
   autoRefundDeadletter,
   assetRehostRefresh,
-  baselineCaptureTrigger,
-  insightsPoller,
-  igMediaIdMatcher,
   billingDunning,
   billingGraceSweep,
 ]

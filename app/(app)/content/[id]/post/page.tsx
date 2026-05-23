@@ -1,12 +1,9 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import PostActions from './PostActions'
-import RealPublishConsentModal from './RealPublishConsentModal'
-import InstagramPostCard from '@/components/content/InstagramPostCard'
 import type { Database } from '@/lib/supabase/types'
 
 type MarketingContent = Database['public']['Tables']['marketing_contents']['Row']
-type InstagramPost = Database['public']['Tables']['instagram_posts']['Row']
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -38,7 +35,7 @@ export default async function PostPage({ params }: PageProps) {
 
   const { data: store } = await supabase
     .from('store_profiles')
-    .select('id, store_name, real_publish_consented_at')
+    .select('id, store_name')
     .eq('owner_id', user.id)
     .maybeSingle()
 
@@ -74,34 +71,10 @@ export default async function PostPage({ params }: PageProps) {
     byKind['caption'],
   ].filter((c): c is MarketingContent => c !== undefined)
 
-  // 각 콘텐츠의 최근 instagram_posts 1개씩 조회
-  const contentIds = cards.map((c) => c.id)
-  const { data: postRows } = contentIds.length > 0
-    ? await supabase
-        .from('instagram_posts')
-        .select('*')
-        .in('content_id', contentIds)
-        .order('posted_at', { ascending: false })
-    : { data: [] as InstagramPost[] }
-
-  const postByContentId: Record<string, InstagramPost> = {}
-  for (const p of postRows ?? []) {
-    if (!postByContentId[p.content_id]) {
-      postByContentId[p.content_id] = p
-    }
-  }
-
-  // Mock→Real 전환 동의 필요 여부
-  const isMockMode = process.env.MOCK_INSTAGRAM_PUBLISH === 'true'
-  const needsConsent = !isMockMode && store.real_publish_consented_at === null
-  const publishMode = isMockMode ? 'mock' : 'real'
-
   return (
     <main className="max-w-xl mx-auto p-6">
-      <RealPublishConsentModal needsConsent={needsConsent} />
-
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900 mb-1">인스타그램 게시</h1>
+        <h1 className="text-xl font-bold text-gray-900 mb-1">최종 산출물</h1>
         <p className="text-sm text-gray-500">{store.store_name}</p>
       </div>
 
@@ -114,18 +87,15 @@ export default async function PostPage({ params }: PageProps) {
         )}
       </div>
 
-      {isMockMode && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-6 text-xs text-yellow-800">
-          현재 모의 게시 모드입니다. 영상·이미지를 다운로드한 후 인스타그램 앱에서 직접 업로드해 주세요.
-        </div>
-      )}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-6 text-xs text-yellow-800">
+        포스터와 릴스는 다운로드하고, 캡션은 복사해서 사장님 계정에서 직접 업로드해 주세요.
+      </div>
 
       {cards.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-8">생성된 콘텐츠가 없습니다.</p>
       ) : (
         <div className="space-y-4">
           {cards.map((content) => {
-            const igPost = postByContentId[content.id]
             const isApproved = content.status === 'approved'
 
             return (
@@ -191,22 +161,20 @@ export default async function PostPage({ params }: PageProps) {
                   </>
                 )}
 
-                {isApproved && content.kind !== 'caption' && !igPost && (
+                {isApproved && (
                   <PostActions
                     contentId={content.id}
                     kind={content.kind}
-                    mode={publishMode}
-                    storageUrl={content.storage_url}
+                    assetUrl={content.storage_url ?? content.external_url}
+                    captionText={content.caption_text}
                   />
                 )}
 
-                {!isApproved && content.kind !== 'caption' && (
+                {!isApproved && (
                   <p className="text-xs text-gray-400 mt-2">
-                    콘텐츠를 먼저 승인해야 게시할 수 있습니다.
+                    콘텐츠를 먼저 승인해야 다운로드하거나 복사할 수 있습니다.
                   </p>
                 )}
-
-                {igPost && <InstagramPostCard post={igPost} />}
               </div>
             )
           })}

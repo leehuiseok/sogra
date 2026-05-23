@@ -42,7 +42,6 @@ export default defineConfig({
           NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://placeholder.supabase.co',
           NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder-anon-key',
           SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'placeholder-service-key',
-          MOCK_INSTAGRAM_PUBLISH: 'true',
           MOCK_AI_PROVIDERS: 'true',
           MOCK_TOSS: 'true',
           TOSS_SECRET_KEY: process.env.TOSS_SECRET_KEY ?? 'placeholder-toss-key',
