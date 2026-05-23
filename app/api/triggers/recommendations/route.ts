@@ -35,6 +35,9 @@ export async function GET() {
 
   const generatedAt = new Date().toISOString()
 
+  // presetKey ↔ trigger_id 매핑 — 카드 클릭 시 콘텐츠 생성 API 에 넘긴다
+  const triggerIdByPreset: Record<string, string> = {}
+
   if (recommendations.length > 0) {
     const rows = recommendations.map((r) => ({
       store_id: store.id,
@@ -47,8 +50,22 @@ export async function GET() {
       score: r.score,
     }))
 
-    await supabase.from('situation_triggers').insert(rows)
+    const { data: inserted } = await supabase
+      .from('situation_triggers')
+      .insert(rows)
+      .select('id, preset_key')
+
+    if (inserted) {
+      for (const row of inserted) {
+        if (row.preset_key) triggerIdByPreset[row.preset_key] = row.id
+      }
+    }
   }
 
-  return NextResponse.json({ recommendations, generatedAt })
+  const enriched = recommendations.map((r) => ({
+    ...r,
+    triggerId: triggerIdByPreset[r.presetKey] ?? null,
+  }))
+
+  return NextResponse.json({ recommendations: enriched, generatedAt })
 }

@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import ConfirmCard, { type ParsedOutput } from '@/components/triggers/ConfirmCard'
 
 interface Recommendation {
   presetKey: string
+  triggerId: string | null
   score: number
   reason: string
   preset: {
@@ -25,6 +27,7 @@ interface FreeformResult {
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [recLoading, setRecLoading] = useState(true)
   const [recError, setRecError] = useState<string | null>(null)
@@ -33,6 +36,30 @@ export default function DashboardPage() {
   const [freeformLoading, setFreeformLoading] = useState(false)
   const [freeformResult, setFreeformResult] = useState<FreeformResult | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [generatingTriggerId, setGeneratingTriggerId] = useState<string | null>(null)
+
+  async function handleGenerateContent(triggerId: string) {
+    if (!triggerId || generatingTriggerId) return
+    setGeneratingTriggerId(triggerId)
+    setToast(null)
+    try {
+      const res = await fetch('/api/content/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trigger_id: triggerId }),
+      })
+      const data = (await res.json()) as { error?: string }
+      if (!res.ok || data.error) {
+        setToast(data.error ?? '콘텐츠 생성에 실패했습니다.')
+        return
+      }
+      router.push(`/content/${triggerId}`)
+    } catch {
+      setToast('네트워크 오류가 발생했습니다. 다시 시도해 주세요.')
+    } finally {
+      setGeneratingTriggerId(null)
+    }
+  }
 
   useEffect(() => {
     fetch('/api/triggers/recommendations')
@@ -142,11 +169,12 @@ export default function DashboardPage() {
               <p className="text-xs text-gray-400 mt-0.5">{rec.preset.descriptionKo}</p>
             </div>
             <button
-              disabled
-              className="shrink-0 text-xs bg-gray-100 text-gray-400 font-medium px-3 py-1.5 rounded cursor-not-allowed"
-              title="Step 4 구현 예정"
+              type="button"
+              disabled={!rec.triggerId || generatingTriggerId !== null}
+              onClick={() => rec.triggerId && handleGenerateContent(rec.triggerId)}
+              className="shrink-0 text-xs bg-orange-500 hover:bg-orange-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium px-3 py-1.5 rounded transition-colors"
             >
-              콘텐츠 만들기
+              {generatingTriggerId === rec.triggerId ? '생성 중...' : '콘텐츠 만들기'}
             </button>
           </div>
         ))}
