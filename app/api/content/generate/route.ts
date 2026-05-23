@@ -249,13 +249,19 @@ export async function POST(req: NextRequest) {
         throw new Error(reelsInsertErr?.message ?? 'reels insert 실패')
       }
 
+      // Runway Gen-3 등 image-to-video 모델은 시작 프레임 이미지가 필수.
+      // poster 가 ready 되어 storage_url 이 있으면 brief 에 주입한다.
+      const reelsBriefWithImage = posterResult?.storage_url
+        ? { ...reelsBrief, image_url: posterResult.storage_url }
+        : reelsBrief
+
       await inngest.send({
         name: 'content/video.generate',
         data: {
           store_id: store.id,
           trigger_id,
           content_id: reelsRow.id,
-          brief: reelsBrief,
+          brief: reelsBriefWithImage,
         } satisfies VideoGenerateEventData,
       })
 

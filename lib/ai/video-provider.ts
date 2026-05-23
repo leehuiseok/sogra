@@ -94,8 +94,14 @@ export const runwayGen3VideoProvider: VideoProvider = {
     }
 
     const anyBrief = brief as unknown as Record<string, unknown>;
-    const prompt =
-      String(anyBrief['video_prompt'] ?? anyBrief['offer'] ?? '') || JSON.stringify(brief);
+    const promptImage = String(anyBrief['image_url'] ?? '');
+    if (!promptImage) {
+      throw new Error(
+        'Runway Gen-3 Turbo 는 image-to-video 모델입니다. brief.image_url(포스터 storage URL)이 필요합니다.',
+      );
+    }
+    const promptText =
+      veoBriefToPrompt(brief);
 
     const res = await fetch(`${RUNWAY_API_BASE}/image_to_video`, {
       method: 'POST',
@@ -106,8 +112,10 @@ export const runwayGen3VideoProvider: VideoProvider = {
       },
       body: JSON.stringify({
         model: 'gen3a_turbo',
-        promptText: prompt,
+        promptImage,
+        promptText,
         duration: 5,
+        ratio: '768:1280',
       }),
     });
 

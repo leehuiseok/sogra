@@ -23,6 +23,9 @@ export const ContentBriefSchema = z.object({
   target_format: z.enum(['poster', 'reels', 'caption']),
   store_name: z.string(),
   extra_context: z.string().optional(),
+  // reels(영상) 생성 시 시작 프레임으로 사용할 포스터 storage URL.
+  // image-to-video 모델(예: Runway Gen-3 Turbo)에서 promptImage 로 전달된다.
+  image_url: z.string().url().optional(),
 })
 export type ContentBrief = z.infer<typeof ContentBriefSchema>
 
