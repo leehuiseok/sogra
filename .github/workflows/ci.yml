@@ -1,0 +1,113 @@
+# .github/workflows/ci.yml
+# CI 파이프라인: TypeScript 타입 검사 + ESLint + 마이그레이션 구문 검사
+# 시크릿 없이 실행 가능 — 모든 외부 API는 MOCK_* 환경변수로 우회
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  typecheck-and-lint:
+    name: TypeCheck & Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      # 외부 API 모킹 환경변수 — CI에서 실제 API 호출 없이 타입 검사 통과
+      - name: TypeScript 타입 검사
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-key
+          TOSS_SECRET_KEY: placeholder-toss-key
+          TOSS_CLIENT_KEY: placeholder-toss-client-key
+          MOCK_TOSS: 'true'
+          MOCK_AI_PROVIDERS: 'true'
+          MOCK_INSTAGRAM_PUBLISH: 'true'
+          INNGEST_SIGNING_KEY: placeholder-inngest-key
+          INNGEST_EVENT_KEY: placeholder-inngest-event-key
+        run: npm run typecheck
+
+      - name: ESLint 린트 검사
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-key
+          TOSS_SECRET_KEY: placeholder-toss-key
+          TOSS_CLIENT_KEY: placeholder-toss-client-key
+          MOCK_TOSS: 'true'
+          MOCK_AI_PROVIDERS: 'true'
+          MOCK_INSTAGRAM_PUBLISH: 'true'
+        run: npm run lint
+
+  migrations-syntax:
+    name: 마이그레이션 SQL 구문 검사
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sogra_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: PostgreSQL 확장 설치 (pgtap, pgcrypto, citext)
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d sogra_test -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+          psql -h localhost -U postgres -d sogra_test -c "CREATE EXTENSION IF NOT EXISTS citext;"
+          # pgtap은 CI 이미지에 없을 수 있으므로 없으면 스킵
+          psql -h localhost -U postgres -d sogra_test -c "CREATE EXTENSION IF NOT EXISTS pgtap;" || true
+          # pg_stat_statements는 shared_preload_libraries 필요 — CI에서 무시
+          psql -h localhost -U postgres -d sogra_test -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" || true
+
+      - name: 마이그레이션 순서대로 적용 (구문 검사)
+        env:
+          PGPASSWORD: postgres
+        run: |
+          # auth.users 스텁 — Supabase Auth 없는 환경에서 FK 통과
+          psql -h localhost -U postgres -d sogra_test -c "
+            CREATE SCHEMA IF NOT EXISTS auth;
+            CREATE TABLE IF NOT EXISTS auth.users (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              email TEXT
+            );
+            -- auth.role() 스텁
+            CREATE OR REPLACE FUNCTION auth.role() RETURNS TEXT LANGUAGE sql STABLE AS \$\$ SELECT 'authenticated'::TEXT \$\$;
+            -- auth.uid() 스텁
+            CREATE OR REPLACE FUNCTION auth.uid() RETURNS UUID LANGUAGE sql STABLE AS \$\$ SELECT '00000000-0000-0000-0000-000000000000'::UUID \$\$;
+          "
+          for f in supabase/migrations/*.sql; do
+            echo "적용 중: $f"
+            psql -h localhost -U postgres -d sogra_test -f "$f"
+          done

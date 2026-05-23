@@ -1,0 +1,30 @@
+{"input":"내일 비 오니까 김치찌개 할인","label":{"event":"rain","action":"discount","when":"tomorrow","target":"김치찌개"}}
+{"input":"오늘 비 오는데 따뜻한 메뉴 홍보해줘","label":{"event":"rain","action":"promote","when":"today","target":null}}
+{"input":"비 오는 날 우산 이벤트 해야겠다","label":{"event":"rain","action":"promote","when":"today","target":null}}
+{"input":"장마철이라 뜨끈한 국물 강조하고 싶어","label":{"event":"rain","action":"promote","when":"today","target":null}}
+{"input":"비 예보 있으면 삼계탕 할인 진행","label":{"event":"rain","action":"discount","when":"today","target":"삼계탕"}}
+{"input":"오늘 소나기 오는 날 찌개류 특가","label":{"event":"rain","action":"discount","when":"today","target":null}}
+{"input":"오늘 너무 더운데 시원한 메뉴 홍보","label":{"event":"heat","action":"promote","when":"today","target":null}}
+{"input":"폭염이니까 냉면 할인 이벤트 하자","label":{"event":"heat","action":"discount","when":"today","target":"냉면"}}
+{"input":"35도 넘는 더위에 빙수 강조해줘","label":{"event":"heat","action":"promote","when":"today","target":"빙수"}}
+{"input":"더위 먹기 전에 시원한 음료 밀어","label":{"event":"heat","action":"promote","when":"today","target":null}}
+{"input":"요즘 너무 더우니까 냉음료 특가 진행할게","label":{"event":"heat","action":"discount","when":"today","target":null}}
+{"input":"폭염 특보 발령 때 아이스 메뉴 홍보","label":{"event":"heat","action":"promote","when":"today","target":null}}
+{"input":"평일 점심 직장인 타겟으로 홍보하고 싶어","label":{"event":"lunch","action":"promote","when":"weekday","target":null}}
+{"input":"오늘 점심 런치 세트 광고 내보내줘","label":{"event":"lunch","action":"promote","when":"today","target":null}}
+{"input":"평일 11시에 점심 특선 올려줘","label":{"event":"lunch","action":"announce","when":"weekday","target":null}}
+{"input":"직장인 점심 시간대 할인 쿠폰 뿌리기","label":{"event":"lunch","action":"discount","when":"weekday","target":null}}
+{"input":"주말 저녁 가족모임 타겟 홍보","label":{"event":"dinner","action":"promote","when":"weekend","target":null}}
+{"input":"이번 주말 저녁 가족 코스 메뉴 강조","label":{"event":"dinner","action":"promote","when":"weekend","target":null}}
+{"input":"토요일 저녁 단체 예약 유도 광고","label":{"event":"dinner","action":"announce","when":"weekend","target":null}}
+{"input":"주말 저녁 타임 특선 코스 홍보해줘","label":{"event":"dinner","action":"promote","when":"weekend","target":null}}
+{"input":"다음 주 추석 연휴 영업 안내 올려줘","label":{"event":"holiday","action":"announce","when":"tomorrow","target":null}}
+{"input":"설날 연휴 때 휴무 공지 해야 해","label":{"event":"holiday","action":"announce","when":"upcoming","target":null}}
+{"input":"어린이날 특별 메뉴 홍보하고 싶어","label":{"event":"holiday","action":"promote","when":"upcoming","target":null}}
+{"input":"명절 특선 세트 있다고 알려줘","label":{"event":"holiday","action":"announce","when":"upcoming","target":null}}
+{"input":"오늘 삼겹살 30% 할인 진행할게","label":{"event":"discount","action":"discount","when":"today","target":"삼겹살"}}
+{"input":"이번 주 런치 세트 2000원 할인","label":{"event":"discount","action":"discount","when":"weekday","target":null}}
+{"input":"신메뉴 출시 알림 올려줘","label":{"event":"opening","action":"announce","when":"today","target":null}}
+{"input":"새로 오픈한 카페 홍보 부탁해","label":{"event":"opening","action":"promote","when":"today","target":null}}
+{"input":"내일 뭔가 해야할것같은데","label":{"event":"other","action":"other","when":"tomorrow","target":null}}
+{"input":"ㅎㅎ 오늘 메뉴 올릴까요 아니면 내일?","label":{"event":"other","action":"other","when":"other","target":null}}

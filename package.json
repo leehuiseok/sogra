@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "e2e": "playwright test",
+    "test:unit": "echo 'unit TODO v1.1' && exit 0"
   },
   "dependencies": {
     "next": "^14.2.0",
@@ -25,6 +27,7 @@
     "@types/react-dom": "latest",
     "tailwindcss": "^3.4",
     "postcss": "latest",
-    "autoprefixer": "latest"
+    "autoprefixer": "latest",
+    "@playwright/test": "latest"
   }
 }

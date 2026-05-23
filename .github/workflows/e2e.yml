@@ -1,0 +1,85 @@
+# .github/workflows/e2e.yml
+# E2E 테스트: Playwright — PR 트리거 + 매주 일요일 크론
+# 모든 외부 API는 MOCK_* 환경변수로 모킹 — 시크릿 없이 실행 가능
+
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # 매주 일요일 02:00 KST (일요일 17:00 UTC)
+    - cron: '0 17 * * 0'
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Playwright 디버그 모드 활성화'
+        required: false
+        default: 'false'
+
+jobs:
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: Playwright 브라우저 설치 (Chrome + WebKit)
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: E2E 테스트 실행
+        env:
+          # Next.js 앱 환경변수 (모든 외부 API 모킹)
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-key
+
+          # 외부 API 모킹 플래그
+          MOCK_INSTAGRAM_PUBLISH: 'true'
+          MOCK_AI_PROVIDERS: 'true'
+          MOCK_TOSS: 'true'
+
+          # Toss (모킹이므로 실제 키 불필요)
+          TOSS_SECRET_KEY: placeholder-toss-key
+          TOSS_CLIENT_KEY: placeholder-toss-client-key
+          TOSS_WEBHOOK_SECRET: placeholder-webhook-secret
+
+          # Inngest (모킹)
+          INNGEST_SIGNING_KEY: placeholder-inngest-key
+          INNGEST_EVENT_KEY: placeholder-inngest-event-key
+
+          # 메트릭 — stdout으로 출력 (DB 불필요)
+          METRICS_SINK: stdout
+
+          # Playwright 설정
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          CI: 'true'
+        run: npm run e2e
+
+      - name: 테스트 결과 아티팩트 업로드 (실패 시)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 7
+
+      - name: 스크린샷 아티팩트 업로드 (실패 시)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots-${{ github.run_id }}
+          path: test-results/
+          retention-days: 7
