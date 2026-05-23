@@ -185,11 +185,11 @@ const GPT4O_OUTPUT_COST_PER_1M = 0.6;
 // =========================================================
 // Provider selector
 // =========================================================
-// AI_PROVIDER 환경변수로 선택 — 기본값은 'gemini'.
+// AI_TEXT_PROVIDER > AI_PROVIDER 순으로 확인. 기본값 'gemini'.
 // 'gemini' | 'claude' | 'openai'
 
 export function getTextProvider(): TextProvider {
-  const provider = (process.env.AI_PROVIDER ?? 'gemini').toLowerCase();
+  const provider = (process.env.AI_TEXT_PROVIDER ?? process.env.AI_PROVIDER ?? 'gemini').toLowerCase();
   if (provider === 'claude' || provider === 'anthropic') return claudeHaikuTextProvider;
   if (provider === 'openai' || provider === 'gpt') return gpt4oMiniTextProvider;
   return geminiFlashTextProvider;

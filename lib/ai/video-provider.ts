@@ -59,11 +59,11 @@ const MOCK_VIDEO_URL =
 // =========================================================
 // Provider selector
 // =========================================================
-// AI_PROVIDER 환경변수로 선택 — 기본값은 'gemini'(Veo).
+// AI_VIDEO_PROVIDER > AI_PROVIDER 순으로 확인. 기본값 'gemini'(Veo).
 // 'gemini'(='veo') | 'runway' | 'pika'
 
 export function getVideoProvider(): VideoProvider {
-  const provider = (process.env.AI_PROVIDER ?? 'gemini').toLowerCase();
+  const provider = (process.env.AI_VIDEO_PROVIDER ?? process.env.AI_PROVIDER ?? 'gemini').toLowerCase();
   if (provider === 'runway') return runwayGen3VideoProvider;
   if (provider === 'pika') return pikaFallbackVideoProvider;
   return geminiVeoVideoProvider;

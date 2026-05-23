@@ -47,11 +47,11 @@ function buildMockImageUrl(brief: ContentBrief): string {
 // =========================================================
 // Provider selector
 // =========================================================
-// AI_PROVIDER 환경변수로 선택 — 기본값은 'gemini'.
+// AI_IMAGE_PROVIDER > AI_PROVIDER 순으로 확인. 기본값 'gemini'.
 // 'gemini' | 'openai'(='dalle3')
 
 export function getImageProvider(): ImageProvider {
-  const provider = (process.env.AI_PROVIDER ?? 'gemini').toLowerCase();
+  const provider = (process.env.AI_IMAGE_PROVIDER ?? process.env.AI_PROVIDER ?? 'gemini').toLowerCase();
   if (provider === 'openai' || provider === 'dalle3') return dalle3ImageProvider;
   return geminiImageProvider;
 }
