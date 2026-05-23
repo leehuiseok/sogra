@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { buildContentBrief } from '@/lib/prompts/content-brief'
-import { claudeHaikuTextProvider } from '@/lib/ai/text-provider'
-import { dalle3ImageProvider } from '@/lib/ai/image-provider'
+import { getTextProvider } from '@/lib/ai/text-provider'
+import { getImageProvider } from '@/lib/ai/image-provider'
 import { checkAndDecrementQuota } from '@/lib/quota/check-and-decrement'
 import { inngest } from '@/inngest/client'
 import type { VideoGenerateEventData } from '@/inngest/functions/generate-video'
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
 
   // caption 생성 (할당량 불필요)
   try {
-    const textResult = await claudeHaikuTextProvider.generate(captionBrief)
+    const textResult = await getTextProvider().generate(captionBrief)
 
     const { data: captionRow, error: captionInsertErr } = await admin
       .from('marketing_contents')
@@ -159,7 +159,11 @@ export async function POST(req: NextRequest) {
   // poster 생성 (할당량 통과 시)
   if (!posterBlocked) {
     try {
-      const imgResult = await dalle3ImageProvider.generate(posterBrief)
+      const imageProvider = getImageProvider()
+      const imgResult = await imageProvider.generate(posterBrief)
+
+      // Gemini 는 base64 data URL 을 반환 → DB column 에는 저장하지 않는다.
+      const isDataUrl = imgResult.external_url.startsWith('data:')
 
       // 포스터 행을 먼저 삽입하여 content_id 확보
       const { data: posterRow, error: posterInsertErr } = await admin
@@ -171,7 +175,7 @@ export async function POST(req: NextRequest) {
           status: 'generating',
           model_used: imgResult.modelUsed,
           cost_usd: imgResult.cost_usd,
-          external_url: imgResult.external_url,
+          external_url: isDataUrl ? null : imgResult.external_url,
         })
         .select('id')
         .single()
@@ -183,7 +187,7 @@ export async function POST(req: NextRequest) {
       // MOCK 모드에서는 placehold.co URL이므로 persistToStorage 시도, 실패 시 external_url만 보존
       let storageUrl: string | null = null
       try {
-        const persisted = await dalle3ImageProvider.persistToStorage({
+        const persisted = await imageProvider.persistToStorage({
           external_url: imgResult.external_url,
           store_id: store.id,
           content_id: posterRow.id,
@@ -209,7 +213,7 @@ export async function POST(req: NextRequest) {
       posterResult = {
         id: posterRow.id,
         storage_url: storageUrl,
-        external_url: imgResult.external_url,
+        external_url: isDataUrl ? '' : imgResult.external_url,
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)

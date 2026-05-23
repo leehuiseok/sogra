@@ -12,7 +12,7 @@
 // 모든 외부 호출은 Lane 2 의 provider 어댑터 / persistAsset 를 통해서만.
 
 import { inngest } from '../client'
-import { runwayGen3VideoProvider } from '@/lib/ai/video-provider'
+import { getVideoProvider } from '@/lib/ai/video-provider'
 import {
   ContentBriefSchema,
   type ContentBrief,
@@ -200,7 +200,7 @@ export const generateVideo = inngest.createFunction(
     // 2) Runway 호출 — external_job_id 수신
     // -----------------------------------------------------
     const started = await step.run('call-runway', async () => {
-      const result = await runwayGen3VideoProvider.startGeneration(brief)
+      const result = await getVideoProvider().startGeneration(brief)
       return result
     })
 
@@ -212,7 +212,7 @@ export const generateVideo = inngest.createFunction(
     let externalUrl: string | null = null
     for (let attempt = 1; attempt <= POLL_MAX_ATTEMPTS; attempt += 1) {
       const polled = await step.run(`poll-runway-${attempt}`, async () => {
-        return runwayGen3VideoProvider.pollStatus(started.external_job_id)
+        return getVideoProvider().pollStatus(started.external_job_id)
       })
 
       if (polled.status === 'succeeded' && polled.external_url) {
@@ -237,7 +237,7 @@ export const generateVideo = inngest.createFunction(
     // 4) persistAsset — 자체 Storage 로 영상 복제
     // -----------------------------------------------------
     const persisted = await step.run('persist-asset', async () => {
-      return runwayGen3VideoProvider.persistToStorage({
+      return getVideoProvider().persistToStorage({
         external_url: externalUrl!,
         store_id,
         content_id,

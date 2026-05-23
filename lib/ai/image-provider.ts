@@ -45,6 +45,18 @@ function buildMockImageUrl(brief: ContentBrief): string {
 }
 
 // =========================================================
+// Provider selector
+// =========================================================
+// AI_PROVIDER 환경변수로 선택 — 기본값은 'gemini'.
+// 'gemini' | 'openai'(='dalle3')
+
+export function getImageProvider(): ImageProvider {
+  const provider = (process.env.AI_PROVIDER ?? 'gemini').toLowerCase();
+  if (provider === 'openai' || provider === 'dalle3') return dalle3ImageProvider;
+  return geminiImageProvider;
+}
+
+// =========================================================
 // DALL·E 3 구현체
 // =========================================================
 // 가격(2025-05 기준): 1024x1024 standard = $0.040/image
@@ -128,5 +140,108 @@ export const dalle3ImageProvider: ImageProvider = {
       ext: 'png',
     });
     return { storage_url, storage_path };
+  },
+};
+
+// =========================================================
+// Gemini 2.5 Flash Image (Nano Banana) 구현체
+// =========================================================
+// API: POST .../models/gemini-2.5-flash-image:generateContent
+// 응답은 inlineData(base64). external_url 자리에 data URL 을 담아
+// persistAsset(global fetch가 data URL 지원)로 Storage에 업로드한다.
+// 가격(2026-05 기준 추정): 이미지 1장 ≈ $0.039
+
+const GEMINI_IMAGE_MODEL_ID = 'gemini-2.5-flash-image';
+const GEMINI_IMAGE_COST_USD = 0.039;
+
+function briefToGeminiImagePrompt(brief: ContentBrief): string {
+  const anyBrief = brief as unknown as Record<string, unknown>;
+  const storeName = String(anyBrief['store_name'] ?? '');
+  const offer = String(anyBrief['offer'] ?? anyBrief['action'] ?? '');
+  const tone = String(anyBrief['tone'] ?? '');
+  const visual = String(anyBrief['visual_style'] ?? anyBrief['style'] ?? '');
+  const composed = [
+    '한국 음식점 인스타그램 포스터 (정사각형, 1024x1024).',
+    storeName && `매장: ${storeName}`,
+    offer && `주제: ${offer}`,
+    tone && `톤: ${tone}`,
+    visual && `비주얼 스타일: ${visual}`,
+    '식욕을 자극하는 따뜻한 조명, 깔끔한 구도, 한국어 카피 영역 여백 확보.',
+  ]
+    .filter(Boolean)
+    .join('\n');
+  return composed || JSON.stringify(brief);
+}
+
+export const geminiImageProvider: ImageProvider = {
+  async generate(brief: ContentBrief): Promise<ImageGenerationResult> {
+    if (isMockEnabled()) {
+      return {
+        external_url: buildMockImageUrl(brief),
+        modelUsed: `${GEMINI_IMAGE_MODEL_ID}+mock`,
+        cost_usd: 0,
+      };
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY 환경변수가 설정되지 않았습니다.');
+    }
+
+    const prompt = briefToGeminiImagePrompt(brief);
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL_ID}:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { responseModalities: ['IMAGE'] },
+        }),
+      },
+    );
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new Error(`Gemini Image API 호출 실패: ${res.status} ${errText}`);
+    }
+
+    const data = (await res.json()) as {
+      candidates?: Array<{
+        content?: {
+          parts?: Array<{
+            inlineData?: { mimeType?: string; data?: string };
+          }>;
+        };
+      }>;
+    };
+
+    const inline = data.candidates?.[0]?.content?.parts?.find(
+      (p) => p.inlineData?.data,
+    )?.inlineData;
+    if (!inline?.data) {
+      throw new Error('Gemini Image 응답에 inlineData 가 없습니다.');
+    }
+
+    // data URL 로 감싸서 persistAsset 에 위임 (Node fetch는 data: 스킴 지원)
+    const mime = inline.mimeType ?? 'image/png';
+    const external_url = `data:${mime};base64,${inline.data}`;
+
+    return {
+      external_url,
+      modelUsed: GEMINI_IMAGE_MODEL_ID,
+      cost_usd: GEMINI_IMAGE_COST_USD,
+    };
+  },
+
+  async persistToStorage(args: ImagePersistArgs): Promise<ImagePersistResult> {
+    return persistAsset({
+      external_url: args.external_url,
+      store_id: args.store_id,
+      content_id: args.content_id,
+      kind: args.kind,
+      ext: 'png',
+    });
   },
 };
